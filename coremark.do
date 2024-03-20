@@ -44,9 +44,9 @@ vcom testsoc/apb_uart/slib_edge_detect.vhd
 vcom testsoc/apb_uart/slib_mv_filter.vhd
 vcom testsoc/apb_uart/uart_transmitter.vhd
 
-vlog tb/tb_miriscv_test_soc.sv
+vlog tb/tb_miriscv_coremark.sv
 
-vsim -suppress 7061 tb_miriscv_test_soc
+vsim -suppress 7061 tb_miriscv_coremark
 
 add log -r /*
 

@@ -1,11 +1,11 @@
 `timescale 1ns / 1ps
 //---------------------------------------------------------
-// Module: tb_miriscv_test_soc
+// Module: tb_miriscv_coremark
 //---------------------------------------------------------
 
 // Testbench module for Miriscv SoC Coremark test
 
-module tb_miriscv_test_soc;
+module tb_miriscv_coremark;
 
     import miriscv_pkg::*;
 
