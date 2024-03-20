@@ -3,6 +3,11 @@
 module miriscv_test_soc
   import miriscv_pkg::XLEN;
   import miriscv_pkg::ILEN;
+
+#(
+  parameter IRAM_INIT_FILE = "",
+  parameter DRAM_INIT_FILE = ""
+)
 (
   input  logic            clk_i,
   input  logic            arstn_i,
@@ -139,10 +144,10 @@ module miriscv_test_soc
 
   miriscv_ram
   #(
-    .RAM_SIZE       ( 65536              ),
-    .IRAM_INIT_FILE ( "sw/testsoc_text.dat" ),
-    .DRAM_INIT_FILE ( "sw/testsoc_data.dat" ),
-    .INST_PER_CYCLE ( N                  )
+    .RAM_SIZE       ( 65536          ),
+    .IRAM_INIT_FILE ( IRAM_INIT_FILE ),
+    .DRAM_INIT_FILE ( DRAM_INIT_FILE ),
+    .INST_PER_CYCLE ( N              )
   )
   i_ram
   (

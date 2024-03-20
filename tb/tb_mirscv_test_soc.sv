@@ -13,6 +13,11 @@ module tb_miriscv_test_soc;
     // Parameters
     //---------------------------------------------------------
 
+    // Init files
+
+    parameter IRAM_INIT_FILE = "sw/coremark_text.dat";
+    parameter DRAM_INIT_FILE = "sw/coremark_data.dat";
+
     // Clock period
 
     parameter real CLOCK_PERIOD = 10;
@@ -74,7 +79,13 @@ module tb_miriscv_test_soc;
 
     // DUT instance
 
-    miriscv_test_soc DUT (
+    miriscv_test_soc
+    #(
+        .IRAM_INIT_FILE ( IRAM_INIT_FILE ),
+        .DRAM_INIT_FILE ( DRAM_INIT_FILE )
+    )
+     DUT 
+    (
         .clk_i       ( clk_i       ),
         .arstn_i     ( arstn_i     ),
         .boot_addr_i ( boot_addr_i ),
