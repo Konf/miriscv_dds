@@ -117,9 +117,6 @@ module miriscv_test_soc
   /////////////////
 
   miriscv_core
-  #(
-    .RVFI ( 1'b0 )
-  )
   i_core
   (
     .clk_i          ( clk_i               ),

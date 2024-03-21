@@ -68,7 +68,7 @@ module miriscv_memory_stage
   output logic                    data_we_o,
   output logic [XLEN/8-1:0]       data_be_o,
   output logic [XLEN-1:0]         data_addr_o,
-  output logic [XLEN-1:0]         data_wdata_o,
+  output logic [XLEN-1:0]         data_wdata_o
 );
 
 

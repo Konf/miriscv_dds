@@ -242,7 +242,7 @@ module miriscv_core
     .e_target_pc_o       ( target_pc       [e] ),
     .e_next_pc_o         ( next_pc         [e] ),
     .e_prediction_o      ( prediction      [e] ),
-    .e_br_j_taken_o      ( br_j_taken      [e] ),
+    .e_br_j_taken_o      ( br_j_taken      [e] )
   );
 
 
