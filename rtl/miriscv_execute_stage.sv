@@ -15,9 +15,7 @@ module miriscv_execute_stage
   import miriscv_mdu_pkg::MDU_OP_W;
   import miriscv_lsu_pkg::MEM_ACCESS_W;
   import miriscv_decode_pkg::WB_SRC_W;
-#(
-  parameter bit RVFI = 1'b0
-) (
+(
   // Clock, reset
   input  logic                    clk_i,
   input  logic                    arstn_i,
@@ -76,48 +74,7 @@ module miriscv_execute_stage
   output logic [XLEN-1:0]         e_target_pc_o,
   output logic [XLEN-1:0]         e_next_pc_o,
   output logic                    e_prediction_o,
-  output logic                    e_br_j_taken_o,
-
-  // RVFI
-  input  logic                    d_rvfi_wb_we_i,
-  input  logic [GPR_ADDR_W-1:0]   d_rvfi_wb_rd_addr_i,
-  input  logic [ILEN-1:0]         d_rvfi_instr_i,
-  input  logic [GPR_ADDR_W-1:0]   d_rvfi_rs1_addr_i,
-  input  logic [GPR_ADDR_W-1:0]   d_rvfi_rs2_addr_i,
-  input  logic                    d_rvfi_op1_gpr_i,
-  input  logic                    d_rvfi_op2_gpr_i,
-  input  logic [XLEN-1:0]         d_rvfi_rs1_rdata_i,
-  input  logic [XLEN-1:0]         d_rvfi_rs2_rdata_i,
-  input  logic [XLEN-1:0]         d_rvfi_current_pc_i,
-  input  logic [XLEN-1:0]         d_rvfi_next_pc_i,
-  input  logic                    d_rvfi_valid_i,
-  input  logic                    d_rvfi_trap_i,
-  input  logic                    d_rvfi_intr_i,
-  input  logic                    d_rvfi_mem_req_i,
-  input  logic                    d_rvfi_mem_we_i,
-  input  logic [MEM_ACCESS_W-1:0] d_rvfi_mem_size_i,
-  input  logic [XLEN-1:0]         d_rvfi_mem_addr_i,
-  input  logic [XLEN-1:0]         d_rvfi_mem_wdata_i,
-
-  output logic                    e_rvfi_wb_we_o,
-  output logic [GPR_ADDR_W-1:0]   e_rvfi_wb_rd_addr_o,
-  output logic [ILEN-1:0]         e_rvfi_instr_o,
-  output logic [GPR_ADDR_W-1:0]   e_rvfi_rs1_addr_o,
-  output logic [GPR_ADDR_W-1:0]   e_rvfi_rs2_addr_o,
-  output logic                    e_rvfi_op1_gpr_o,
-  output logic                    e_rvfi_op2_gpr_o,
-  output logic [XLEN-1:0]         e_rvfi_rs1_rdata_o,
-  output logic [XLEN-1:0]         e_rvfi_rs2_rdata_o,
-  output logic [XLEN-1:0]         e_rvfi_current_pc_o,
-  output logic [XLEN-1:0]         e_rvfi_next_pc_o,
-  output logic                    e_rvfi_valid_o,
-  output logic                    e_rvfi_trap_o,
-  output logic                    e_rvfi_intr_o,
-  output logic                    e_rvfi_mem_req_o,
-  output logic                    e_rvfi_mem_we_o,
-  output logic [MEM_ACCESS_W-1:0] e_rvfi_mem_size_o,
-  output logic [XLEN-1:0]         e_rvfi_mem_addr_o,
-  output logic [XLEN-1:0]         e_rvfi_mem_wdata_o
+  output logic                    e_br_j_taken_o
 );
 
 
@@ -252,103 +209,5 @@ module miriscv_execute_stage
   assign e_br_j_taken_o  = e_br_j_taken_ff;
 
   assign e_stall_req_o   = mdu_stall_req;
-
-
-  ////////////////////
-  // RVFI interface //
-  ////////////////////
-
-  if (RVFI) begin
-    always_ff @(posedge clk_i or negedge arstn_i) begin
-      if(~arstn_i) begin
-        e_rvfi_wb_we_o          <= '0;
-        e_rvfi_wb_rd_addr_o     <= '0;
-        e_rvfi_instr_o          <= '0;
-        e_rvfi_rs1_addr_o       <= '0;
-        e_rvfi_rs2_addr_o       <= '0;
-        e_rvfi_op1_gpr_o        <= '0;
-        e_rvfi_op2_gpr_o        <= '0;
-        e_rvfi_rs1_rdata_o      <= '0;
-        e_rvfi_rs2_rdata_o      <= '0;
-        e_rvfi_current_pc_o     <= '0;
-        e_rvfi_next_pc_o        <= '0;
-        e_rvfi_valid_o          <= '0;
-        e_rvfi_trap_o           <= '0;
-        e_rvfi_intr_o           <= '0;
-        e_rvfi_mem_req_o        <= '0;
-        e_rvfi_mem_we_o         <= '0;
-        e_rvfi_mem_size_o       <= '0;
-        e_rvfi_mem_addr_o       <= '0;
-        e_rvfi_mem_wdata_o      <= '0;
-      end
-
-      else if (cu_kill_e_i) begin
-        e_rvfi_wb_we_o          <= '0;
-        e_rvfi_wb_rd_addr_o     <= '0;
-        e_rvfi_instr_o          <= '0;
-        e_rvfi_rs1_addr_o       <= '0;
-        e_rvfi_rs2_addr_o       <= '0;
-        e_rvfi_op1_gpr_o        <= '0;
-        e_rvfi_op2_gpr_o        <= '0;
-        e_rvfi_rs1_rdata_o      <= '0;
-        e_rvfi_rs2_rdata_o      <= '0;
-        e_rvfi_current_pc_o     <= '0;
-        e_rvfi_next_pc_o        <= '0;
-        e_rvfi_valid_o          <= '0;
-        e_rvfi_trap_o           <= '0;
-        e_rvfi_intr_o           <= '0;
-        e_rvfi_mem_req_o        <= '0;
-        e_rvfi_mem_we_o         <= '0;
-        e_rvfi_mem_size_o       <= '0;
-        e_rvfi_mem_addr_o       <= '0;
-        e_rvfi_mem_wdata_o      <= '0;
-      end
-
-      else if (~cu_stall_e_i) begin
-        e_rvfi_wb_we_o          <= d_rvfi_wb_we_i;
-        e_rvfi_wb_rd_addr_o     <= d_rvfi_wb_rd_addr_i;
-        e_rvfi_instr_o          <= d_rvfi_instr_i;
-        e_rvfi_rs1_addr_o       <= d_rvfi_rs1_addr_i;
-        e_rvfi_rs2_addr_o       <= d_rvfi_rs2_addr_i;
-        e_rvfi_op1_gpr_o        <= d_rvfi_op1_gpr_i;
-        e_rvfi_op2_gpr_o        <= d_rvfi_op2_gpr_i;
-        e_rvfi_rs1_rdata_o      <= d_rvfi_rs1_rdata_i;
-        e_rvfi_rs2_rdata_o      <= d_rvfi_rs2_rdata_i;
-        e_rvfi_current_pc_o     <= d_rvfi_current_pc_i;
-        e_rvfi_next_pc_o        <= d_rvfi_next_pc_i;
-        e_rvfi_valid_o          <= d_rvfi_valid_i;
-        e_rvfi_trap_o           <= d_rvfi_trap_i;
-        e_rvfi_intr_o           <= d_rvfi_intr_i;
-        e_rvfi_mem_req_o        <= d_rvfi_mem_req_i;
-        e_rvfi_mem_we_o         <= d_rvfi_mem_we_i;
-        e_rvfi_mem_size_o       <= d_rvfi_mem_size_i;
-        e_rvfi_mem_addr_o       <= d_rvfi_mem_addr_i;
-        e_rvfi_mem_wdata_o      <= d_rvfi_mem_wdata_i;
-      end
-
-    end
-  end
-
-  else begin
-    assign e_rvfi_wb_we_o          = '0;
-    assign e_rvfi_wb_rd_addr_o     = '0;
-    assign e_rvfi_instr_o          = '0;
-    assign e_rvfi_rs1_addr_o       = '0;
-    assign e_rvfi_rs2_addr_o       = '0;
-    assign e_rvfi_op1_gpr_o        = '0;
-    assign e_rvfi_op2_gpr_o        = '0;
-    assign e_rvfi_rs1_rdata_o      = '0;
-    assign e_rvfi_rs2_rdata_o      = '0;
-    assign e_rvfi_current_pc_o     = '0;
-    assign e_rvfi_next_pc_o        = '0;
-    assign e_rvfi_valid_o          = '0;
-    assign e_rvfi_trap_o           = '0;
-    assign e_rvfi_intr_o           = '0;
-    assign e_rvfi_mem_req_o        = '0;
-    assign e_rvfi_mem_we_o         = '0;
-    assign e_rvfi_mem_size_o       = '0;
-    assign e_rvfi_mem_addr_o       = '0;
-    assign e_rvfi_mem_wdata_o      = '0;
-  end
 
 endmodule

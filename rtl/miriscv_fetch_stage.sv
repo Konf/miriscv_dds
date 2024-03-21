@@ -10,9 +10,7 @@
 module miriscv_fetch_stage
   import miriscv_pkg::XLEN;
   import miriscv_pkg::ILEN;
-#(
-  parameter bit RVFI = 1'b0
-) (
+(
   // Clock, reset
   input  logic            clk_i,
   input  logic            arstn_i,

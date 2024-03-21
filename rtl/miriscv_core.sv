@@ -15,9 +15,7 @@ module miriscv_core
   import miriscv_mdu_pkg::MDU_OP_W;
   import miriscv_lsu_pkg::MEM_ACCESS_W;
   import miriscv_decode_pkg::WB_SRC_W;
-#(
-  parameter bit RVFI = 1'b1
-) (
+(
   // Clock, reset
   input  logic              clk_i,
   input  logic              arstn_i,
@@ -37,30 +35,7 @@ module miriscv_core
   output logic              data_we_o,
   output logic [XLEN/8-1:0] data_be_o,
   output logic [XLEN-1:0]   data_addr_o,
-  output logic [XLEN-1:0]   data_wdata_o,
-
-  // RVFI
-  output logic              rvfi_valid_o,
-  output logic [63:0]       rvfi_order_o,
-  output logic [31:0]       rvfi_insn_o,
-  output logic              rvfi_trap_o,
-  output logic              rvfi_halt_o,
-  output logic              rvfi_intr_o,
-  output logic [ 1:0]       rvfi_mode_o,
-  output logic [ 1:0]       rvfi_ixl_o,
-  output logic [ 4:0]       rvfi_rs1_addr_o,
-  output logic [ 4:0]       rvfi_rs2_addr_o,
-  output logic [31:0]       rvfi_rs1_rdata_o,
-  output logic [31:0]       rvfi_rs2_rdata_o,
-  output logic [ 4:0]       rvfi_rd_addr_o,
-  output logic [31:0]       rvfi_rd_wdata_o,
-  output logic [31:0]       rvfi_pc_rdata_o,
-  output logic [31:0]       rvfi_pc_wdata_o,
-  output logic [31:0]       rvfi_mem_addr_o,
-  output logic [ 3:0]       rvfi_mem_rmask_o,
-  output logic [ 3:0]       rvfi_mem_wmask_o,
-  output logic [31:0]       rvfi_mem_rdata_o,
-  output logic [31:0]       rvfi_mem_wdata_o
+  output logic [XLEN-1:0]   data_wdata_o
 );
 
 
@@ -119,39 +94,11 @@ module miriscv_core
   logic [GPR_ADDR_W-1:0]   cu_rs2_addr     [f:f];
   logic                    cu_rs2_req      [f:f];
 
-  logic [XLEN-1:0]         rvfi_wb_data    [m:w];
-  logic                    rvfi_wb_we      [f:w];
-  logic [GPR_ADDR_W-1:0]   rvfi_wb_rd_addr [f:w];
-
-  logic [ILEN-1:0]         rvfi_instr      [f:w];
-  logic [GPR_ADDR_W-1:0]   rvfi_rs1_addr   [f:w];
-  logic [GPR_ADDR_W-1:0]   rvfi_rs2_addr   [f:w];
-  logic                    rvfi_op1_gpr    [f:w];
-  logic                    rvfi_op2_gpr    [f:w];
-  logic [XLEN-1:0]         rvfi_rs1_rdata  [f:w];
-  logic [XLEN-1:0]         rvfi_rs2_rdata  [f:w];
-  logic [XLEN-1:0]         rvfi_current_pc [f:w];
-  logic [XLEN-1:0]         rvfi_next_pc    [f:w];
-  logic                    rvfi_valid      [f:w];
-  logic                    rvfi_trap       [f:w];
-  logic                    rvfi_intr       [f:w];
-
-  logic                    rvfi_mem_req    [f:w];
-  logic                    rvfi_mem_we     [f:w];
-  logic [MEM_ACCESS_W-1:0] rvfi_mem_size   [f:w];
-  logic [XLEN-1:0]         rvfi_mem_addr   [f:w];
-  logic [XLEN-1:0]         rvfi_mem_wdata  [f:w];
-  logic [XLEN-1:0]         rvfi_mem_rdata  [m:w];
-
-
   /////////////////
   // Fetch stage //
   /////////////////
 
   miriscv_fetch_stage
-  #(
-    .RVFI ( RVFI )
-  )
   i_fetch_stage
   (
     .clk_i          ( clk_i              ),
@@ -180,9 +127,6 @@ module miriscv_core
   //////////////////
 
   miriscv_decode_stage
-  #(
-    .RVFI ( RVFI )
-  )
   i_decode_stage
   (
     .clk_i               ( clk_i               ),
@@ -232,27 +176,7 @@ module miriscv_core
     .f_cu_rs1_addr_o     ( cu_rs1_addr     [f] ),
     .f_cu_rs1_req_o      ( cu_rs1_req      [f] ),
     .f_cu_rs2_addr_o     ( cu_rs2_addr     [f] ),
-    .f_cu_rs2_req_o      ( cu_rs2_req      [f] ),
-
-    .d_rvfi_wb_we_o      ( rvfi_wb_we      [d] ),
-    .d_rvfi_wb_rd_addr_o ( rvfi_wb_rd_addr [d] ),
-    .d_rvfi_instr_o      ( rvfi_instr      [d] ),
-    .d_rvfi_rs1_addr_o   ( rvfi_rs1_addr   [d] ),
-    .d_rvfi_rs2_addr_o   ( rvfi_rs2_addr   [d] ),
-    .d_rvfi_op1_gpr_o    ( rvfi_op1_gpr    [d] ),
-    .d_rvfi_op2_gpr_o    ( rvfi_op2_gpr    [d] ),
-    .d_rvfi_rs1_rdata_o  ( rvfi_rs1_rdata  [d] ),
-    .d_rvfi_rs2_rdata_o  ( rvfi_rs2_rdata  [d] ),
-    .d_rvfi_current_pc_o ( rvfi_current_pc [d] ),
-    .d_rvfi_next_pc_o    ( rvfi_next_pc    [d] ),
-    .d_rvfi_valid_o      ( rvfi_valid      [d] ),
-    .d_rvfi_trap_o       ( rvfi_trap       [d] ),
-    .d_rvfi_intr_o       ( rvfi_intr       [d] ),
-    .d_rvfi_mem_req_o    ( rvfi_mem_req    [d] ),
-    .d_rvfi_mem_we_o     ( rvfi_mem_we     [d] ),
-    .d_rvfi_mem_size_o   ( rvfi_mem_size   [d] ),
-    .d_rvfi_mem_addr_o   ( rvfi_mem_addr   [d] ),
-    .d_rvfi_mem_wdata_o  ( rvfi_mem_wdata  [d] )
+    .f_cu_rs2_req_o      ( cu_rs2_req      [f] )
   );
 
 
@@ -261,9 +185,6 @@ module miriscv_core
   ///////////////////
 
   miriscv_execute_stage
-  #(
-    .RVFI ( RVFI )
-  )
   i_execute_stage
   (
     .clk_i               ( clk_i               ),
@@ -322,46 +243,6 @@ module miriscv_core
     .e_next_pc_o         ( next_pc         [e] ),
     .e_prediction_o      ( prediction      [e] ),
     .e_br_j_taken_o      ( br_j_taken      [e] ),
-
-    .d_rvfi_wb_we_i      ( rvfi_wb_we      [d] ),
-    .d_rvfi_wb_rd_addr_i ( rvfi_wb_rd_addr [d] ),
-    .d_rvfi_instr_i      ( rvfi_instr      [d] ),
-    .d_rvfi_rs1_addr_i   ( rvfi_rs1_addr   [d] ),
-    .d_rvfi_rs2_addr_i   ( rvfi_rs2_addr   [d] ),
-    .d_rvfi_op1_gpr_i    ( rvfi_op1_gpr    [d] ),
-    .d_rvfi_op2_gpr_i    ( rvfi_op2_gpr    [d] ),
-    .d_rvfi_rs1_rdata_i  ( rvfi_rs1_rdata  [d] ),
-    .d_rvfi_rs2_rdata_i  ( rvfi_rs2_rdata  [d] ),
-    .d_rvfi_current_pc_i ( rvfi_current_pc [d] ),
-    .d_rvfi_next_pc_i    ( rvfi_next_pc    [d] ),
-    .d_rvfi_valid_i      ( rvfi_valid      [d] ),
-    .d_rvfi_trap_i       ( rvfi_trap       [d] ),
-    .d_rvfi_intr_i       ( rvfi_intr       [d] ),
-    .d_rvfi_mem_req_i    ( rvfi_mem_req    [d] ),
-    .d_rvfi_mem_we_i     ( rvfi_mem_we     [d] ),
-    .d_rvfi_mem_size_i   ( rvfi_mem_size   [d] ),
-    .d_rvfi_mem_addr_i   ( rvfi_mem_addr   [d] ),
-    .d_rvfi_mem_wdata_i  ( rvfi_mem_wdata  [d] ),
-
-    .e_rvfi_wb_we_o      ( rvfi_wb_we      [e] ),
-    .e_rvfi_wb_rd_addr_o ( rvfi_wb_rd_addr [e] ),
-    .e_rvfi_instr_o      ( rvfi_instr      [e] ),
-    .e_rvfi_rs1_addr_o   ( rvfi_rs1_addr   [e] ),
-    .e_rvfi_rs2_addr_o   ( rvfi_rs2_addr   [e] ),
-    .e_rvfi_op1_gpr_o    ( rvfi_op1_gpr    [e] ),
-    .e_rvfi_op2_gpr_o    ( rvfi_op2_gpr    [e] ),
-    .e_rvfi_rs1_rdata_o  ( rvfi_rs1_rdata  [e] ),
-    .e_rvfi_rs2_rdata_o  ( rvfi_rs2_rdata  [e] ),
-    .e_rvfi_current_pc_o ( rvfi_current_pc [e] ),
-    .e_rvfi_next_pc_o    ( rvfi_next_pc    [e] ),
-    .e_rvfi_valid_o      ( rvfi_valid      [e] ),
-    .e_rvfi_trap_o       ( rvfi_trap       [e] ),
-    .e_rvfi_intr_o       ( rvfi_intr       [e] ),
-    .e_rvfi_mem_req_o    ( rvfi_mem_req    [e] ),
-    .e_rvfi_mem_we_o     ( rvfi_mem_we     [e] ),
-    .e_rvfi_mem_size_o   ( rvfi_mem_size   [e] ),
-    .e_rvfi_mem_addr_o   ( rvfi_mem_addr   [e] ),
-    .e_rvfi_mem_wdata_o  ( rvfi_mem_wdata  [e] )
   );
 
 
@@ -370,9 +251,6 @@ module miriscv_core
   //////////////////
 
   miriscv_memory_stage
-  #(
-    .RVFI ( RVFI )
-  )
   i_memory_stage
   (
     .clk_i               ( clk_i               ),
@@ -424,49 +302,7 @@ module miriscv_core
     .data_we_o           ( data_we_o           ),
     .data_be_o           ( data_be_o           ),
     .data_addr_o         ( data_addr_o         ),
-    .data_wdata_o        ( data_wdata_o        ),
-
-    .e_rvfi_wb_we_i      ( rvfi_wb_we      [e] ),
-    .e_rvfi_wb_rd_addr_i ( rvfi_wb_rd_addr [e] ),
-    .e_rvfi_instr_i      ( rvfi_instr      [e] ),
-    .e_rvfi_rs1_addr_i   ( rvfi_rs1_addr   [e] ),
-    .e_rvfi_rs2_addr_i   ( rvfi_rs2_addr   [e] ),
-    .e_rvfi_op1_gpr_i    ( rvfi_op1_gpr    [e] ),
-    .e_rvfi_op2_gpr_i    ( rvfi_op2_gpr    [e] ),
-    .e_rvfi_rs1_rdata_i  ( rvfi_rs1_rdata  [e] ),
-    .e_rvfi_rs2_rdata_i  ( rvfi_rs2_rdata  [e] ),
-    .e_rvfi_current_pc_i ( rvfi_current_pc [e] ),
-    .e_rvfi_next_pc_i    ( rvfi_next_pc    [e] ),
-    .e_rvfi_valid_i      ( rvfi_valid      [e] ),
-    .e_rvfi_trap_i       ( rvfi_trap       [e] ),
-    .e_rvfi_intr_i       ( rvfi_intr       [e] ),
-    .e_rvfi_mem_req_i    ( rvfi_mem_req    [e] ),
-    .e_rvfi_mem_we_i     ( rvfi_mem_we     [e] ),
-    .e_rvfi_mem_size_i   ( rvfi_mem_size   [e] ),
-    .e_rvfi_mem_addr_i   ( rvfi_mem_addr   [e] ),
-    .e_rvfi_mem_wdata_i  ( rvfi_mem_wdata  [e] ),
-
-    .m_rvfi_wb_data_o    ( rvfi_wb_data    [m] ),
-    .m_rvfi_wb_we_o      ( rvfi_wb_we      [m] ),
-    .m_rvfi_wb_rd_addr_o ( rvfi_wb_rd_addr [m] ),
-    .m_rvfi_instr_o      ( rvfi_instr      [m] ),
-    .m_rvfi_rs1_addr_o   ( rvfi_rs1_addr   [m] ),
-    .m_rvfi_rs2_addr_o   ( rvfi_rs2_addr   [m] ),
-    .m_rvfi_op1_gpr_o    ( rvfi_op1_gpr    [m] ),
-    .m_rvfi_op2_gpr_o    ( rvfi_op2_gpr    [m] ),
-    .m_rvfi_rs1_rdata_o  ( rvfi_rs1_rdata  [m] ),
-    .m_rvfi_rs2_rdata_o  ( rvfi_rs2_rdata  [m] ),
-    .m_rvfi_current_pc_o ( rvfi_current_pc [m] ),
-    .m_rvfi_next_pc_o    ( rvfi_next_pc    [m] ),
-    .m_rvfi_valid_o      ( rvfi_valid      [m] ),
-    .m_rvfi_trap_o       ( rvfi_trap       [m] ),
-    .m_rvfi_intr_o       ( rvfi_intr       [m] ),
-    .m_rvfi_mem_req_o    ( rvfi_mem_req    [m] ),
-    .m_rvfi_mem_we_o     ( rvfi_mem_we     [m] ),
-    .m_rvfi_mem_size_o   ( rvfi_mem_size   [m] ),
-    .m_rvfi_mem_addr_o   ( rvfi_mem_addr   [m] ),
-    .m_rvfi_mem_wdata_o  ( rvfi_mem_wdata  [m] ),
-    .m_rvfi_mem_rdata_o  ( rvfi_mem_rdata  [m] )
+    .data_wdata_o        ( data_wdata_o        )
   );
 
 
@@ -524,108 +360,5 @@ module miriscv_core
     .cu_force_pc_o      ( cu_force_pc    [f] ),
     .cu_force_f_o       ( cu_force       [f] )
   );
-
-
-  //////////
-  // RVFI //
-  //////////
-
-  assign rvfi_instr      [w] = rvfi_instr      [m];
-  assign rvfi_rs1_addr   [w] = rvfi_rs1_addr   [m];
-  assign rvfi_rs2_addr   [w] = rvfi_rs2_addr   [m];
-  assign rvfi_op1_gpr    [w] = rvfi_op1_gpr    [m];
-  assign rvfi_op2_gpr    [w] = rvfi_op2_gpr    [m];
-  assign rvfi_rs1_rdata  [w] = rvfi_rs1_rdata  [m];
-  assign rvfi_rs2_rdata  [w] = rvfi_rs2_rdata  [m];
-  assign rvfi_wb_rd_addr [w] = rvfi_wb_rd_addr [m];
-  assign rvfi_wb_we      [w] = rvfi_wb_we      [m];
-  assign rvfi_wb_data    [w] = rvfi_wb_data    [m];
-  assign rvfi_mem_we     [w] = rvfi_mem_we     [m];
-  assign rvfi_mem_req    [w] = rvfi_mem_req    [m];
-  assign rvfi_mem_size   [w] = rvfi_mem_size   [m];
-  assign rvfi_mem_addr   [w] = rvfi_mem_addr   [m];
-  assign rvfi_mem_wdata  [w] = rvfi_mem_wdata  [m];
-  assign rvfi_mem_rdata  [w] = rvfi_mem_rdata  [m];
-  assign rvfi_current_pc [w] = rvfi_current_pc [m];
-  assign rvfi_next_pc    [w] = rvfi_next_pc    [m];
-  assign rvfi_valid      [w] = rvfi_valid      [m];
-  assign rvfi_intr       [w] = rvfi_intr       [m];
-  assign rvfi_trap       [w] = rvfi_trap       [m];
-
-
-  if (RVFI) begin
-    miriscv_rvfi_controller
-    i_rvfi
-    (
-      .clk_i            ( clk_i                ),
-      .aresetn_i        ( arstn_i              ),
-      .w_instr_i        ( rvfi_instr       [w] ),
-      .w_rs1_addr_i     ( rvfi_rs1_addr    [w] ),
-      .w_rs2_addr_i     ( rvfi_rs2_addr    [w] ),
-      .w_op1_gpr_i      ( rvfi_op1_gpr     [w] ),
-      .w_op2_gpr_i      ( rvfi_op2_gpr     [w] ),
-      .w_rs1_rdata_i    ( rvfi_rs1_rdata   [w] ),
-      .w_rs2_rdata_i    ( rvfi_rs2_rdata   [w] ),
-      .w_wb_rd_addr_i   ( rvfi_wb_rd_addr  [w] ),
-      .w_wb_we_i        ( rvfi_wb_we       [w] ),
-      .w_wb_data_i      ( rvfi_wb_data     [w] ),
-      .w_data_we_i      ( rvfi_mem_we      [w] ),
-      .w_data_req_i     ( rvfi_mem_req     [w] ),
-      .w_data_size_i    ( rvfi_mem_size    [w] ),
-      .w_data_addr_i    ( rvfi_mem_addr    [w] ),
-      .w_data_wdata_i   ( rvfi_mem_wdata   [w] ),
-      .w_data_rdata_i   ( rvfi_mem_rdata   [w] ),
-      .w_current_pc_i   ( rvfi_current_pc  [w] ),
-      .w_next_pc_i      ( rvfi_next_pc     [w] ),
-      .w_valid_i        ( rvfi_valid       [w] ),
-      .w_intr_i         ( rvfi_intr        [w] ),
-      .w_trap_i         ( rvfi_trap        [w] ),
-      .rvfi_valid_o     ( rvfi_valid_o         ),
-      .rvfi_order_o     ( rvfi_order_o         ),
-      .rvfi_insn_o      ( rvfi_insn_o          ),
-      .rvfi_trap_o      ( rvfi_trap_o          ),
-      .rvfi_halt_o      ( rvfi_halt_o          ),
-      .rvfi_intr_o      ( rvfi_intr_o          ),
-      .rvfi_mode_o      ( rvfi_mode_o          ),
-      .rvfi_ixl_o       ( rvfi_ixl_o           ),
-      .rvfi_rs1_addr_o  ( rvfi_rs1_addr_o      ),
-      .rvfi_rs2_addr_o  ( rvfi_rs2_addr_o      ),
-      .rvfi_rs1_rdata_o ( rvfi_rs1_rdata_o     ),
-      .rvfi_rs2_rdata_o ( rvfi_rs2_rdata_o     ),
-      .rvfi_rd_addr_o   ( rvfi_rd_addr_o       ),
-      .rvfi_rd_wdata_o  ( rvfi_rd_wdata_o      ),
-      .rvfi_pc_rdata_o  ( rvfi_pc_rdata_o      ),
-      .rvfi_pc_wdata_o  ( rvfi_pc_wdata_o      ),
-      .rvfi_mem_addr_o  ( rvfi_mem_addr_o      ),
-      .rvfi_mem_rmask_o ( rvfi_mem_rmask_o     ),
-      .rvfi_mem_wmask_o ( rvfi_mem_wmask_o     ),
-      .rvfi_mem_rdata_o ( rvfi_mem_rdata_o     ),
-      .rvfi_mem_wdata_o ( rvfi_mem_wdata_o     )
-    );
-
-  end
-  else begin
-    assign rvfi_valid_o     = '0;
-    assign rvfi_order_o     = '0;
-    assign rvfi_insn_o      = '0;
-    assign rvfi_trap_o      = '0;
-    assign rvfi_halt_o      = '0;
-    assign rvfi_intr_o      = '0;
-    assign rvfi_mode_o      = '0;
-    assign rvfi_ixl_o       = '0;
-    assign rvfi_rs1_addr_o  = '0;
-    assign rvfi_rs2_addr_o  = '0;
-    assign rvfi_rs1_rdata_o = '0;
-    assign rvfi_rs2_rdata_o = '0;
-    assign rvfi_rd_addr_o   = '0;
-    assign rvfi_rd_wdata_o  = '0;
-    assign rvfi_pc_rdata_o  = '0;
-    assign rvfi_pc_wdata_o  = '0;
-    assign rvfi_mem_addr_o  = '0;
-    assign rvfi_mem_rmask_o = '0;
-    assign rvfi_mem_wmask_o = '0;
-    assign rvfi_mem_rdata_o = '0;
-    assign rvfi_mem_wdata_o = '0;
-  end
 
 endmodule
