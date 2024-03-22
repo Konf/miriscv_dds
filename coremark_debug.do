@@ -22,7 +22,8 @@ rtl/miriscv_fetch_unit.sv \
 rtl/miriscv_gpr.sv \
 rtl/miriscv_lsu.sv \
 rtl/miriscv_mdu.sv \
-rtl/miriscv_memory_stage.sv \
+rtl/miriscv_mem_data_stage.sv \
+rtl/miriscv_mem_req_stage.sv \
 rtl/miriscv_signextend.sv \
 testsoc/miriscv_ram.sv \
 testsoc/miriscv_test_soc.sv \

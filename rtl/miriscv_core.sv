@@ -47,45 +47,46 @@ module miriscv_core
   localparam d = 3'd1; // decode
   localparam e = 3'd2; // execute
   localparam m = 3'd3; // memory
-  localparam w = 3'd4; // writeback
+  localparam mp = 3'd4; // memory plus
+  localparam w = 3'd5; // writeback
 
   logic [XLEN-1:0]         current_pc      [f:f];
-  logic [XLEN-1:0]         next_pc         [f:m];
+  logic [XLEN-1:0]         next_pc         [f:mp];
 
   logic [ILEN-1:0]         instr           [f:f];
-  logic                    valid           [f:m];
+  logic                    valid           [f:mp];
 
-  logic                    gpr_wr_en       [d:m];
-  logic [GPR_ADDR_W-1:0]   gpr_wr_addr     [d:m];
-  logic [WB_SRC_W-1:0]     gpr_src_sel     [d:e];
-  logic [XLEN-1:0]         gpr_wr_data     [m:m];
+  logic                    gpr_wr_en       [d:mp];
+  logic [GPR_ADDR_W-1:0]   gpr_wr_addr     [d:mp];
+  logic [WB_SRC_W-1:0]     gpr_src_sel     [d:m];
+  logic [XLEN-1:0]         gpr_wr_data     [mp:mp];
 
   logic [XLEN-1:0]         op1             [d:d];
   logic [XLEN-1:0]         op2             [d:d];
 
-  logic [XLEN-1:0]         alu_result      [e:e];
-  logic [XLEN-1:0]         mdu_result      [e:e];
+  logic [XLEN-1:0]         alu_result      [e:m];
+  logic [XLEN-1:0]         mdu_result      [e:m];
 
   logic [ALU_OP_W-1:0]     alu_operation   [d:d];
   logic                    mdu_req         [d:d];
   logic [MDU_OP_W-1:0]     mdu_operation   [d:d];
 
-  logic                    mem_req         [d:e];
+  logic                    mem_req         [d:m];
   logic                    mem_we          [d:e];
-  logic [MEM_ACCESS_W-1:0] mem_size        [d:e];
-  logic [XLEN-1:0]         mem_addr        [d:e];
+  logic [MEM_ACCESS_W-1:0] mem_size        [d:m];
+  logic [XLEN-1:0]         mem_addr        [d:m];
   logic [XLEN-1:0]         mem_data        [d:e];
 
-  logic                    branch          [d:m];
-  logic                    jal             [d:m];
-  logic                    jalr            [d:m];
-  logic [XLEN-1:0]         target_pc       [d:m];
-  logic                    prediction      [d:m];
-  logic                    br_j_taken      [d:m];
+  logic                    branch          [d:mp];
+  logic                    jal             [d:mp];
+  logic                    jalr            [d:mp];
+  logic [XLEN-1:0]         target_pc       [d:mp];
+  logic                    prediction      [d:mp];
+  logic                    br_j_taken      [d:mp];
 
-  logic                    cu_stall_req    [f:m];
-  logic                    cu_stall        [f:m];
-  logic                    cu_kill         [f:m];
+  logic                    cu_stall_req    [f:mp];
+  logic                    cu_stall        [f:mp];
+  logic                    cu_kill         [f:mp];
   logic                    cu_force        [f:f];
   logic [XLEN-1:0]         cu_force_pc     [f:f];
 
@@ -142,9 +143,9 @@ module miriscv_core
     .f_next_pc_i         ( next_pc         [f] ),
     .f_valid_i           ( valid           [f] ),
 
-    .m_gpr_wr_en_i       ( gpr_wr_en       [m] ),
-    .m_gpr_wr_data_i     ( gpr_wr_data     [m] ),
-    .m_gpr_wr_addr_i     ( gpr_wr_addr     [m] ),
+    .m_gpr_wr_en_i       ( gpr_wr_en       [mp] ),
+    .m_gpr_wr_data_i     ( gpr_wr_data     [mp] ),
+    .m_gpr_wr_addr_i     ( gpr_wr_addr     [mp] ),
 
     .d_valid_o           ( valid           [d] ),
 
@@ -250,9 +251,10 @@ module miriscv_core
   // Memory stage //
   //////////////////
 
-  miriscv_memory_stage
+  miriscv_mem_req_stage
   i_memory_stage
   (
+    // Clock, reset
     .clk_i               ( clk_i               ),
     .arstn_i             ( arstn_i             ),
 
@@ -284,9 +286,13 @@ module miriscv_core
     .e_br_j_taken_i      ( br_j_taken      [e] ),
 
     .m_valid_o           ( valid           [m] ),
+
     .m_gpr_wr_en_o       ( gpr_wr_en       [m] ),
     .m_gpr_wr_addr_o     ( gpr_wr_addr     [m] ),
-    .m_gpr_wr_data_o     ( gpr_wr_data     [m] ),
+    .m_gpr_src_sel_o     ( gpr_src_sel     [m] ),
+
+    .m_alu_result_o      ( alu_result      [m] ),
+    .m_mdu_result_o      ( mdu_result      [m] ),
 
     .m_branch_o          ( branch          [m] ),
     .m_jal_o             ( jal             [m] ),
@@ -296,13 +302,69 @@ module miriscv_core
     .m_prediction_o      ( prediction      [m] ),
     .m_br_j_taken_o      ( br_j_taken      [m] ),
 
-    .data_rvalid_i       ( data_rvalid_i       ),
-    .data_rdata_i        ( data_rdata_i        ),
+    .m_mem_req_o         ( mem_req         [m] ),
+    .m_mem_size_o        ( mem_size        [m] ),
+    .m_mem_addr_o        ( mem_addr        [m] ),
+
+    // Data memory interface
     .data_req_o          ( data_req_o          ),
     .data_we_o           ( data_we_o           ),
     .data_be_o           ( data_be_o           ),
     .data_addr_o         ( data_addr_o         ),
     .data_wdata_o        ( data_wdata_o        )
+  );
+
+  ///////////////////////
+  // Memory plus stage //
+  ///////////////////////
+
+  miriscv_mem_data_stage
+  i_memory_plus_stage
+  (
+    .clk_i               ( clk_i              ),
+    .arstn_i             ( arstn_i            ),
+
+    .cu_stall_mp_i       ( cu_stall       [mp]),
+    .cu_kill_mp_i        ( cu_kill        [mp]),
+    .mp_stall_req_o      ( cu_stall_req   [mp]),
+
+    .m_valid_i           ( valid          [m] ),
+
+    .m_gpr_wr_en_i       ( gpr_wr_en      [m] ),
+    .m_gpr_wr_addr_i     ( gpr_wr_addr    [m] ),
+    .m_gpr_src_sel_i     ( gpr_src_sel    [m] ),
+
+    .m_alu_result_i      ( alu_result     [m] ),
+    .m_mdu_result_i      ( mdu_result     [m] ),
+
+    .m_branch_i          ( branch         [m] ),
+    .m_jal_i             ( jal            [m] ),
+    .m_jalr_i            ( jalr           [m] ),
+    .m_target_pc_i       ( target_pc      [m] ),
+    .m_next_pc_i         ( next_pc        [m] ),
+    .m_prediction_i      ( prediction     [m] ),
+    .m_br_j_taken_i      ( br_j_taken     [m] ),
+
+    .m_mem_req_i         ( mem_req        [m] ),
+    .m_mem_size_i        ( mem_size       [m] ),
+    .m_mem_addr_i        ( mem_addr       [m] ),
+
+    .mp_valid_o          ( valid          [mp]),
+    .mp_gpr_wr_en_o      ( gpr_wr_en      [mp]),
+    .mp_gpr_wr_addr_o    ( gpr_wr_addr    [mp]),
+    .mp_gpr_wr_data_o    ( gpr_wr_data    [mp]),
+
+    .mp_branch_o         ( branch         [mp]),
+    .mp_jal_o            ( jal            [mp]),
+    .mp_jalr_o           ( jalr           [mp]),
+    .mp_target_pc_o      ( target_pc      [mp]),
+    .mp_next_pc_o        ( next_pc        [mp]),
+    .mp_prediction_o     ( prediction     [mp]),
+    .mp_br_j_taken_o     ( br_j_taken     [mp]),
+
+    // Data memory interface
+    .data_rvalid_i       ( data_rvalid_i      ),
+    .data_rdata_i        ( data_rdata_i       )
   );
 
 
@@ -322,11 +384,13 @@ module miriscv_core
     .d_stall_req_i      ( cu_stall_req   [d] ),
     .e_stall_req_i      ( cu_stall_req   [e] ),
     .m_stall_req_i      ( cu_stall_req   [m] ),
+    .mp_stall_req_i     ( cu_stall_req   [mp]),
 
     .f_valid_i          ( valid          [f] ),
     .d_valid_i          ( valid          [d] ),
     .e_valid_i          ( valid          [e] ),
     .m_valid_i          ( valid          [m] ),
+    .mp_valid_i         ( valid          [mp]),
 
     .f_cu_rs1_addr_i    ( cu_rs1_addr    [f] ),
     .f_cu_rs1_req_i     ( cu_rs1_req     [f] ),
@@ -339,23 +403,28 @@ module miriscv_core
     .e_cu_rd_addr_i     ( gpr_wr_addr    [e] ),
     .e_cu_rd_we_i       ( gpr_wr_en      [e] ),
 
-    .m_branch_i         ( branch         [m] ),
-    .m_jal_i            ( jal            [m] ),
-    .m_jalr_i           ( jalr           [m] ),
-    .m_target_pc_i      ( target_pc      [m] ),
-    .m_next_pc_i        ( next_pc        [m] ),
-    .m_prediction_i     ( prediction     [m] ),
-    .m_br_j_taken_i     ( br_j_taken     [m] ),
+    .m_cu_rd_addr_i     ( gpr_wr_addr    [m] ),
+    .m_cu_rd_we_i       ( gpr_wr_en      [m] ),
+
+    .mp_branch_i        ( branch         [mp]),
+    .mp_jal_i           ( jal            [mp]),
+    .mp_jalr_i          ( jalr           [mp]),
+    .mp_target_pc_i     ( target_pc      [mp]),
+    .mp_next_pc_i       ( next_pc        [mp]),
+    .mp_prediction_i    ( prediction     [mp]),
+    .mp_br_j_taken_i    ( br_j_taken     [mp]),
 
     .cu_stall_f_o       ( cu_stall       [f] ),
     .cu_stall_d_o       ( cu_stall       [d] ),
     .cu_stall_e_o       ( cu_stall       [e] ),
     .cu_stall_m_o       ( cu_stall       [m] ),
+    .cu_stall_mp_o      ( cu_stall       [mp]),
 
     .cu_kill_f_o        ( cu_kill        [f] ),
     .cu_kill_d_o        ( cu_kill        [d] ),
     .cu_kill_e_o        ( cu_kill        [e] ),
     .cu_kill_m_o        ( cu_kill        [m] ),
+    .cu_kill_mp_o       ( cu_kill        [mp]),
 
     .cu_force_pc_o      ( cu_force_pc    [f] ),
     .cu_force_f_o       ( cu_force       [f] )
