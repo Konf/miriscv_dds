@@ -81,7 +81,7 @@ module miriscv_fetch_unit
       fetched_pc_next_ff <= '0;
     end
     else if (instr_req_o) begin
-      fetched_pc_ff      <= pc_ff;
+      fetched_pc_ff      <= cu_force_f_i ? cu_force_pc_i : pc_ff;
       fetched_pc_next_ff <= pc_next;
     end
   end

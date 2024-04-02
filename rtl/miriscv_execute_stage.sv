@@ -57,6 +57,8 @@ module miriscv_execute_stage
   output logic [XLEN-1:0]         e_alu_result_o,
   output logic [XLEN-1:0]         e_mdu_result_o,
 
+  input  logic [XLEN-1:0]         d_current_pc_i,
+
   // To Memory stage
   output logic                    e_mem_req_o,
   output logic                    e_mem_we_o,
@@ -74,7 +76,9 @@ module miriscv_execute_stage
   output logic [XLEN-1:0]         e_target_pc_o,
   output logic [XLEN-1:0]         e_next_pc_o,
   output logic                    e_prediction_o,
-  output logic                    e_br_j_taken_o
+  output logic                    e_br_j_taken_o,
+
+  output logic [XLEN-1:0]         e_current_pc_o
 );
 
 
@@ -181,6 +185,8 @@ module miriscv_execute_stage
       e_next_pc_ff     <= d_next_pc_i;
       e_prediction_ff  <= d_prediction_i;
       e_br_j_taken_ff  <= d_br_j_taken_i | (d_branch_i & branch_des);
+
+      e_current_pc_o <= d_current_pc_i;
 
     end
   end

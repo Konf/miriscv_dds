@@ -49,7 +49,7 @@ module miriscv_core
   localparam m = 3'd3; // memory
   localparam w = 3'd4; // writeback
 
-  logic [XLEN-1:0]         current_pc      [f:f];
+  logic [XLEN-1:0]         current_pc      [f:m];
   logic [XLEN-1:0]         next_pc         [f:m];
 
   logic [ILEN-1:0]         instr           [f:f];
@@ -126,6 +126,9 @@ module miriscv_core
   // Decode stage //
   //////////////////
 
+  logic d_taken;
+  logic [XLEN-1:0] d_target;
+
   miriscv_decode_stage
   i_decode_stage
   (
@@ -136,6 +139,9 @@ module miriscv_core
     .cu_stall_d_i        ( cu_stall        [d] ),
     .cu_stall_f_i        ( cu_stall        [f] ),
     .d_stall_req_o       ( cu_stall_req    [d] ),
+
+    .d_taken_o           (d_taken),
+    .d_target_o          (d_target),
 
     .f_instr_i           ( instr           [f] ),
     .f_current_pc_i      ( current_pc      [f] ),
@@ -172,6 +178,8 @@ module miriscv_core
     .d_next_pc_o         ( next_pc         [d] ),
     .d_prediction_o      ( prediction      [d] ),
     .d_br_j_taken_o      ( br_j_taken      [d] ),
+
+    .d_current_pc_o (current_pc[d]),
 
     .f_cu_rs1_addr_o     ( cu_rs1_addr     [f] ),
     .f_cu_rs1_req_o      ( cu_rs1_req      [f] ),
@@ -221,6 +229,8 @@ module miriscv_core
     .d_prediction_i      ( prediction      [d] ),
     .d_br_j_taken_i      ( br_j_taken      [d] ),
 
+    .d_current_pc_i (current_pc[d]),
+
     .e_valid_o           ( valid           [e] ),
 
     .e_alu_result_o      ( alu_result      [e] ),
@@ -242,7 +252,8 @@ module miriscv_core
     .e_target_pc_o       ( target_pc       [e] ),
     .e_next_pc_o         ( next_pc         [e] ),
     .e_prediction_o      ( prediction      [e] ),
-    .e_br_j_taken_o      ( br_j_taken      [e] )
+    .e_br_j_taken_o      ( br_j_taken      [e] ),
+    .e_current_pc_o (current_pc[e])
   );
 
 
@@ -282,6 +293,7 @@ module miriscv_core
     .e_next_pc_i         ( next_pc         [e] ),
     .e_prediction_i      ( prediction      [e] ),
     .e_br_j_taken_i      ( br_j_taken      [e] ),
+    .e_current_pc_i (current_pc[e]),
 
     .m_valid_o           ( valid           [m] ),
     .m_gpr_wr_en_o       ( gpr_wr_en       [m] ),
@@ -295,6 +307,8 @@ module miriscv_core
     .m_next_pc_o         ( next_pc         [m] ),
     .m_prediction_o      ( prediction      [m] ),
     .m_br_j_taken_o      ( br_j_taken      [m] ),
+
+    .m_current_pc_o (current_pc[m]),
 
     .data_rvalid_i       ( data_rvalid_i       ),
     .data_rdata_i        ( data_rdata_i        ),
@@ -346,6 +360,9 @@ module miriscv_core
     .m_next_pc_i        ( next_pc        [m] ),
     .m_prediction_i     ( prediction     [m] ),
     .m_br_j_taken_i     ( br_j_taken     [m] ),
+
+    .d_taken_i (d_taken),
+    .d_target_i (d_target),
 
     .cu_stall_f_o       ( cu_stall       [f] ),
     .cu_stall_d_o       ( cu_stall       [d] ),

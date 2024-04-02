@@ -26,6 +26,9 @@ module miriscv_decode_stage
   input  logic                    cu_stall_f_i,
   output logic                    d_stall_req_o,
 
+  output logic                    d_taken_o,
+  output logic [XLEN-1:0]         d_target_o,
+
   // From Fetch
   input  logic [ILEN-1:0]         f_instr_i,
   input  logic [XLEN-1:0]         f_current_pc_i,
@@ -67,7 +70,9 @@ module miriscv_decode_stage
   output logic [GPR_ADDR_W-1:0]   f_cu_rs1_addr_o,
   output logic                    f_cu_rs1_req_o,
   output logic [GPR_ADDR_W-1:0]   f_cu_rs2_addr_o,
-  output logic                    f_cu_rs2_req_o
+  output logic                    f_cu_rs2_req_o,
+
+  output logic [XLEN-1:0]         d_current_pc_o
 );
 
 
@@ -344,6 +349,21 @@ module miriscv_decode_stage
     endcase
   end
 
+  /////////////////////
+  // Simple BTFN BPU //
+  /////////////////////
+
+  logic instr_jump;
+  
+  assign instr_jump = d_jalr | d_jal;
+
+
+  logic bpu_prediction;
+  assign bpu_prediction = instr_jump;
+
+
+  assign d_taken_o = bpu_prediction;
+  assign d_target_o = d_target_pc;
 
   ///////////////////////
   // Pipeline register //
@@ -385,9 +405,10 @@ module miriscv_decode_stage
       d_jalr_ff          <= d_jalr;
       d_target_pc_ff     <= d_target_pc;
       d_next_pc_ff       <= f_next_pc_i;
-      d_prediction_ff    <= '0; // All instructions are "predicted" as not taken
+      d_prediction_ff    <= bpu_prediction;
       d_br_j_taken_ff    <= d_jal | d_jalr;
 
+      d_current_pc_o <= f_current_pc_i;
     end
   end
 

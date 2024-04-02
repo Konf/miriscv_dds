@@ -48,6 +48,8 @@ module miriscv_memory_stage
   input  logic                    e_prediction_i,
   input  logic                    e_br_j_taken_i,
 
+  input  logic [XLEN-1:0]         e_current_pc_i,
+
   output logic                    m_valid_o,
   output logic                    m_gpr_wr_en_o,
   output logic [GPR_ADDR_W-1:0]   m_gpr_wr_addr_o,
@@ -60,6 +62,8 @@ module miriscv_memory_stage
   output logic [XLEN-1:0]         m_next_pc_o,
   output logic                    m_prediction_o,
   output logic                    m_br_j_taken_o,
+
+  output logic [XLEN-1:0]         m_current_pc_o,
 
   // Data memory interface
   input  logic                    data_rvalid_i,
@@ -142,5 +146,7 @@ module miriscv_memory_stage
   assign m_br_j_taken_o  = e_br_j_taken_i;
 
   assign m_stall_req_o   = lsu_stall_req;
+
+  assign m_current_pc_o = e_current_pc_i;
 
 endmodule
