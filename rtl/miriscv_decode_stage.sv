@@ -355,7 +355,7 @@ module miriscv_decode_stage
 
   logic instr_jump;
   
-  assign instr_jump = d_jalr | d_jal;
+  assign instr_jump = /*d_jalr |*/ d_jal;
 
 
   logic bpu_prediction;
