@@ -4,7 +4,6 @@ vmap work
 vlog \
 rtl/include/miriscv_pkg.sv \
 rtl/include/miriscv_alu_pkg.sv \
-rtl/include/miriscv_cu_pkg.sv \
 rtl/include/miriscv_decode_pkg.sv \
 rtl/include/miriscv_gpr_pkg.sv \
 rtl/include/miriscv_lsu_pkg.sv \
@@ -20,7 +19,6 @@ rtl/miriscv_execute_stage.sv \
 rtl/miriscv_fetch_stage.sv \
 rtl/miriscv_fetch_unit.sv \
 rtl/miriscv_gpr.sv \
-rtl/miriscv_lsu.sv \
 rtl/miriscv_mdu.sv \
 rtl/miriscv_mem_data_stage.sv \
 rtl/miriscv_mem_req_stage.sv \
