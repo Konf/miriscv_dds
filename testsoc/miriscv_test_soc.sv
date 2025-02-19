@@ -5,8 +5,8 @@ module miriscv_test_soc
   import miriscv_pkg::ILEN;
 
 #(
-  parameter IRAM_INIT_FILE = "",
-  parameter DRAM_INIT_FILE = ""
+  parameter IRAM_INIT_FILE = "coremark_text.dat",
+  parameter DRAM_INIT_FILE = "coremark_data.dat"
 )
 (
   input  logic            clk_i,
