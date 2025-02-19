@@ -40,6 +40,7 @@ module miriscv_mem_data_stage
   output logic                    mp_gpr_wr_en_o,
   output logic [GPR_ADDR_W-1:0]   mp_gpr_wr_addr_o,
   output logic [XLEN-1:0]         mp_gpr_wr_data_o,
+  output logic [XLEN-1:0]         mp_byp_data_o,
 
   output logic                    mp_branch_o,
   output logic                    mp_jal_o,
@@ -140,6 +141,7 @@ module miriscv_mem_data_stage
   assign mp_gpr_wr_en_o   = m_gpr_wr_en_i & m_valid_i & ~cu_stall_mp_i;
   assign mp_gpr_wr_addr_o = m_gpr_wr_addr_i;
   assign mp_gpr_wr_data_o = m_result;
+  assign mp_byp_data_o    = m_result;
 
   assign mp_branch_o      = m_branch_i;
   assign mp_jal_o         = m_jal_i;

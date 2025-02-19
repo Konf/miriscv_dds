@@ -36,6 +36,12 @@ module miriscv_decode_stage
   input  logic [XLEN-1:0]         m_gpr_wr_data_i,
   input  logic [GPR_ADDR_W-1:0]   m_gpr_wr_addr_i,
 
+  input logic  [XLEN-1:0]         e_byp_i,
+  input logic  [XLEN-1:0]         m_byp_i,
+  input logic  [XLEN-1:0]         mp_byp_i,
+  input logic  [1:0]              byp_sel1_i,
+  input logic  [1:0]              byp_sel2_i,
+
   output logic                    d_valid_o,
 
   output logic [XLEN-1:0]         d_op1_o,
@@ -111,8 +117,10 @@ module miriscv_decode_stage
 
   logic [GPR_ADDR_W-1:0]   r1_addr;
   logic [XLEN-1:0]         r1_data;
+  logic [XLEN-1:0]         r1_data_gpr;
   logic [GPR_ADDR_W-1:0]   r2_addr;
   logic [XLEN-1:0]         r2_data;
+  logic [XLEN-1:0]         r2_data_gpr;
   logic [GPR_ADDR_W-1:0]   rd_addr;
 
   logic                    gpr_wr_en;
@@ -238,10 +246,34 @@ module miriscv_decode_stage
     .wr_data_i  ( gpr_wr_data ),
 
     .r1_addr_i  ( r1_addr     ),
-    .r1_data_o  ( r1_data     ),
+    .r1_data_o  ( r1_data_gpr ),
     .r2_addr_i  ( r2_addr     ),
-    .r2_data_o  ( r2_data     )
+    .r2_data_o  ( r2_data_gpr  )
   );
+
+  ////////////////
+  // Bypass mux //
+  ////////////////
+
+  always_comb begin
+    unique case (byp_sel1_i)
+      BYPASS_E  : r1_data = e_byp_i;
+      BYPASS_M  : r1_data = m_byp_i;
+      BYPASS_MP : r1_data = mp_byp_i;
+      NO_BYPASS : r1_data = r1_data_gpr;
+      default   : r1_data = r1_data_gpr;
+    endcase
+  end
+
+  always_comb begin
+    unique case (byp_sel2_i)
+      BYPASS_E  : r2_data = e_byp_i;
+      BYPASS_M  : r2_data = m_byp_i;
+      BYPASS_MP : r2_data = mp_byp_i;
+      NO_BYPASS : r2_data = r2_data_gpr;
+      default   : r2_data = r2_data_gpr;
+    endcase
+  end
 
 
   //////////////////////////////

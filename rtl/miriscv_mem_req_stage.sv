@@ -13,6 +13,8 @@ module miriscv_mem_req_stage
   import miriscv_lsu_pkg::MEM_ACCESS_W;
   import miriscv_decode_pkg::WB_SRC_W;
   import miriscv_lsu_pkg::*;
+  import miriscv_decode_pkg::ALU_DATA;
+  import miriscv_decode_pkg::MDU_DATA;
 (
   // Clock, reset
   input  logic                    clk_i,
@@ -50,6 +52,7 @@ module miriscv_mem_req_stage
   output logic                    m_gpr_wr_en_o,
   output logic [GPR_ADDR_W-1:0]   m_gpr_wr_addr_o,
   output logic [WB_SRC_W-1:0]     m_gpr_src_sel_o,
+  output logic [XLEN-1:0]         m_byp_data_o,
 
   output logic [XLEN-1:0]         m_alu_result_o,
   output logic [XLEN-1:0]         m_mdu_result_o,
@@ -65,6 +68,7 @@ module miriscv_mem_req_stage
   output logic                    m_mem_req_o,
   output logic [MEM_ACCESS_W-1:0] m_mem_size_o,
   output logic [1:0]              m_mem_addr_o,
+  output logic                    m_mem_we_o,
 
   // Data memory interface
   output logic                    data_req_o,
@@ -90,6 +94,7 @@ module miriscv_mem_req_stage
   logic                    m_mem_req_ff;
   logic [MEM_ACCESS_W-1:0] m_mem_size_ff;
   logic [1:0]              m_mem_addr_ff;
+  logic                    m_mem_we_ff;
 
   logic                    m_gpr_wr_en_ff;
   logic [GPR_ADDR_W-1:0]   m_gpr_wr_addr_ff;
@@ -183,7 +188,16 @@ module miriscv_mem_req_stage
       m_mem_req_ff     <= e_mem_req_i;
       m_mem_size_ff    <= e_mem_size_i;
       m_mem_addr_ff    <= e_mem_addr_i[1:0];
+      m_mem_we_ff      <= e_mem_we_i;
     end
+  end
+
+  always_comb begin
+    unique case (e_gpr_src_sel_i)
+      ALU_DATA : m_byp_data_o = e_alu_result_i;
+      MDU_DATA : m_byp_data_o = e_mdu_result_i;
+      default  : m_byp_data_o = e_alu_result_i;
+    endcase
   end
 
   assign m_valid_o       = m_valid_ff;
@@ -206,6 +220,7 @@ module miriscv_mem_req_stage
   assign m_mem_req_o    = m_mem_req_ff;
   assign m_mem_size_o   = m_mem_size_ff;
   assign m_mem_addr_o   = m_mem_addr_ff;
+  assign m_mem_we_o     = m_mem_we_ff;
 
   assign m_stall_req_o = '0;
 

@@ -15,6 +15,8 @@ module miriscv_execute_stage
   import miriscv_mdu_pkg::MDU_OP_W;
   import miriscv_lsu_pkg::MEM_ACCESS_W;
   import miriscv_decode_pkg::WB_SRC_W;
+  import miriscv_decode_pkg::ALU_DATA;
+  import miriscv_decode_pkg::MDU_DATA;
 (
   // Clock, reset
   input  logic                    clk_i,
@@ -67,6 +69,7 @@ module miriscv_execute_stage
   output logic                    e_gpr_wr_en_o,
   output logic [GPR_ADDR_W-1:0]   e_gpr_wr_addr_o,
   output logic [WB_SRC_W-1:0]     e_gpr_src_sel_o,
+  output logic [XLEN-1:0]         e_byp_data_o,
 
   output logic                    e_branch_o,
   output logic                    e_jal_o,
@@ -183,6 +186,14 @@ module miriscv_execute_stage
       e_br_j_taken_ff  <= d_br_j_taken_i | (d_branch_i & branch_des);
 
     end
+  end
+
+  always_comb begin
+    unique case (d_gpr_src_sel_i)
+      ALU_DATA : e_byp_data_o = alu_result;
+      MDU_DATA : e_byp_data_o = mdu_result;
+      default  : e_byp_data_o = alu_result;
+    endcase
   end
 
   assign e_valid_o       = e_valid_ff;

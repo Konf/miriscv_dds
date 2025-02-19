@@ -64,6 +64,10 @@ module miriscv_core
   logic [XLEN-1:0]         op1             [d:d];
   logic [XLEN-1:0]         op2             [d:d];
 
+  logic [1:0]              byp_sel1;
+  logic [1:0]              byp_sel2;
+  logic [XLEN-1:0]         byp_data        [e:mp];
+
   logic [XLEN-1:0]         alu_result      [e:m];
   logic [XLEN-1:0]         mdu_result      [e:m];
 
@@ -72,7 +76,7 @@ module miriscv_core
   logic [MDU_OP_W-1:0]     mdu_operation   [d:d];
 
   logic                    mem_req         [d:m];
-  logic                    mem_we          [d:e];
+  logic                    mem_we          [d:m];
   logic [MEM_ACCESS_W-1:0] mem_size        [d:m];
   logic [XLEN-1:0]         mem_addr        [d:m];
   logic [XLEN-1:0]         mem_data        [d:e];
@@ -146,6 +150,12 @@ module miriscv_core
     .m_gpr_wr_en_i       ( gpr_wr_en       [mp] ),
     .m_gpr_wr_data_i     ( gpr_wr_data     [mp] ),
     .m_gpr_wr_addr_i     ( gpr_wr_addr     [mp] ),
+
+    .e_byp_i             ( byp_data        [e] ),
+    .m_byp_i             ( byp_data        [m] ),
+    .mp_byp_i            ( byp_data        [mp]),
+    .byp_sel1_i          ( byp_sel1            ),
+    .byp_sel2_i          ( byp_sel2            ),
 
     .d_valid_o           ( valid           [d] ),
 
@@ -236,6 +246,7 @@ module miriscv_core
     .e_gpr_wr_en_o       ( gpr_wr_en       [e] ),
     .e_gpr_wr_addr_o     ( gpr_wr_addr     [e] ),
     .e_gpr_src_sel_o     ( gpr_src_sel     [e] ),
+    .e_byp_data_o        ( byp_data        [e] ),
 
     .e_branch_o          ( branch          [e] ),
     .e_jal_o             ( jal             [e] ),
@@ -290,6 +301,7 @@ module miriscv_core
     .m_gpr_wr_en_o       ( gpr_wr_en       [m] ),
     .m_gpr_wr_addr_o     ( gpr_wr_addr     [m] ),
     .m_gpr_src_sel_o     ( gpr_src_sel     [m] ),
+    .m_byp_data_o        ( byp_data        [m] ),
 
     .m_alu_result_o      ( alu_result      [m] ),
     .m_mdu_result_o      ( mdu_result      [m] ),
@@ -303,6 +315,7 @@ module miriscv_core
     .m_br_j_taken_o      ( br_j_taken      [m] ),
 
     .m_mem_req_o         ( mem_req         [m] ),
+    .m_mem_we_o          ( mem_we          [m] ),
     .m_mem_size_o        ( mem_size        [m] ),
     .m_mem_addr_o        ( mem_addr        [m] ),
 
@@ -353,6 +366,7 @@ module miriscv_core
     .mp_gpr_wr_en_o      ( gpr_wr_en      [mp]),
     .mp_gpr_wr_addr_o    ( gpr_wr_addr    [mp]),
     .mp_gpr_wr_data_o    ( gpr_wr_data    [mp]),
+    .mp_byp_data_o       ( byp_data       [mp]),
 
     .mp_branch_o         ( branch         [mp]),
     .mp_jal_o            ( jal            [mp]),
@@ -406,6 +420,13 @@ module miriscv_core
     .m_cu_rd_addr_i     ( gpr_wr_addr    [m] ),
     .m_cu_rd_we_i       ( gpr_wr_en      [m] ),
 
+    .d_mem_req_i        ( mem_req        [d] ),
+    .d_mem_we_i         ( mem_we         [d] ),
+    .e_mem_req_i        ( mem_req        [e] ),
+    .e_mem_we_i         ( mem_we         [e] ),
+    .m_mem_req_i        ( mem_req        [m] ),
+    .m_mem_we_i         ( mem_we         [m] ),
+
     .mp_branch_i        ( branch         [mp]),
     .mp_jal_i           ( jal            [mp]),
     .mp_jalr_i          ( jalr           [mp]),
@@ -413,6 +434,9 @@ module miriscv_core
     .mp_next_pc_i       ( next_pc        [mp]),
     .mp_prediction_i    ( prediction     [mp]),
     .mp_br_j_taken_i    ( br_j_taken     [mp]),
+
+    .byp_sel1_o         ( byp_sel1           ),
+    .byp_sel2_o         ( byp_sel2           ),
 
     .cu_stall_f_o       ( cu_stall       [f] ),
     .cu_stall_d_o       ( cu_stall       [d] ),

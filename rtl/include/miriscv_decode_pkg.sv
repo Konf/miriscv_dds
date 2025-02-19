@@ -26,4 +26,10 @@ package  miriscv_decode_pkg;
   parameter IMM_U      = 2'd2;
   parameter NEXT_PC    = 2'd3;
 
+  parameter NO_BYPASS = 2'd0;
+  parameter BYPASS_E  = 2'd1;
+  parameter BYPASS_M  = 2'd2;
+  parameter BYPASS_MP = 2'd3;
+
+
 endpackage
