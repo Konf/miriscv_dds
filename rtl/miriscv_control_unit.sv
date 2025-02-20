@@ -167,4 +167,39 @@ module miriscv_control_unit
 
   assign cu_force_f_o = cu_boot_addr_load_en | cu_mispredict;
 
+  // Counters
+  logic [63:0] instr_cnt_ff;
+  logic [63:0] mispred_cnt_ff;
+  logic [63:0] stall_cnt_ff;
+  logic [63:0] cycle_cnt_ff;
+
+  always_ff @(posedge clk_i or negedge arstn_i) begin
+    if (~arstn_i)
+      instr_cnt_ff <= '0;
+    else if (mp_valid_i & ~cu_stall_mp_o)
+      instr_cnt_ff <= instr_cnt_ff + 1;
+  end
+
+  always_ff @(posedge clk_i or negedge arstn_i) begin
+    if (~arstn_i)
+      mispred_cnt_ff <= '0;
+    else if (cu_mispredict)
+      mispred_cnt_ff <= mispred_cnt_ff + 1;
+  end
+
+  always_ff @(posedge clk_i or negedge arstn_i) begin
+    if (~arstn_i)
+      stall_cnt_ff <= '0;
+    else if (cu_stall_f_o)
+      stall_cnt_ff <= stall_cnt_ff + 1;
+  end
+
+
+  always_ff @(posedge clk_i or negedge arstn_i) begin
+    if (~arstn_i)
+      cycle_cnt_ff <= '0;
+    else
+      cycle_cnt_ff <= cycle_cnt_ff + 1;
+  end
+
 endmodule
